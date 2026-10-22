@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Comunidade Jogos Brasil RSS Feed (fixture)</title>
+    <link><![CDATA[https://steamcommunity.com/groups/jogosbra]]></link>
+    <description>Fixture para testes offline</description>
+    <item>
+      <title>[FREE] Fireside Feelings</title>
+      <description>&lt;a class=&quot;bb_link&quot; href=&quot;https://store.steampowered.com/app/2990600/Fireside_Feelings/?curator_clanid=6250352&quot; target=&quot;_blank&quot; rel=&quot;&quot; id=&quot;dynamiclink_0&quot;&gt;https://store.steampowered.com/app/2990600/Fireside_Feelings/?curator_clanid=6250352&lt;/a&gt;</description>
+      <link><![CDATA[https://steamcommunity.com/groups/jogosbra/announcements/detail/680763661892979390]]></link>
+      <pubDate>Fri, 09 Oct 2026 17:06:52 +0000</pubDate>
+      <author>DKA</author>
+      <guid isPermaLink="true">https://steamcommunity.com/groups/jogosbra/announcements/detail/680763661892979390</guid>
+    </item>
+    <item>
+      <title>[FREE] Pony Island</title>
+      <description>&lt;a class=&quot;bb_link&quot; href=&quot;https://store.steampowered.com/app/405640/Pony_Island/?curator_clanid=6250352&quot; target=&quot;_blank&quot; rel=&quot;&quot;&gt;https://store.steampowered.com/app/405640/Pony_Island/?curator_clanid=6250352&lt;/a&gt;</description>
+      <link><![CDATA[https://steamcommunity.com/groups/jogosbra/announcements/detail/680763661892978434]]></link>
+      <pubDate>Thu, 08 Oct 2026 17:42:10 +0000</pubDate>
+      <author>DKA</author>
+      <guid isPermaLink="true">https://steamcommunity.com/groups/jogosbra/announcements/detail/680763661892978434</guid>
+    </item>
+    <item>
+      <title>Post normal sem tag de oferta</title>
+      <description>Apenas um anúncio comum do grupo.</description>
+      <link><![CDATA[https://steamcommunity.com/groups/jogosbra/announcements/detail/680763661892000000]]></link>
+      <pubDate>Wed, 07 Oct 2026 12:00:00 +0000</pubDate>
+      <author>DKA</author>
+      <guid isPermaLink="true">https://steamcommunity.com/groups/jogosbra/announcements/detail/680763661892000000</guid>
+    </item>
+  </channel>
+</rss>

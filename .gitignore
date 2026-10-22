@@ -1,0 +1,40 @@
+# Ambiente virtual
+.venv/
+venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+
+# Ferramentas / cache
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Build / empacotamento
+build/
+dist/
+*.spec
+!packaging/*.spec
+
+# Banco de dados local
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs e ambiente
+*.log
+.env
+.env.*
+
+# Editores / sistema
+.vscode/
+.idea/
+*.swp
+Thumbs.db
+desktop.ini

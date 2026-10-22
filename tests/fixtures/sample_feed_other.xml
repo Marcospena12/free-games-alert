@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Outro Grupo RSS Feed (fixture)</title>
+    <link><![CDATA[https://steamcommunity.com/groups/outro]]></link>
+    <description>Fixture para testes offline</description>
+    <item>
+      <title>[FREE] Other Free Game One</title>
+      <description>&lt;a class=&quot;bb_link&quot; href=&quot;https://store.steampowered.com/app/111111/Other_Free_One/?curator_clanid=1&quot;&gt;https://store.steampowered.com/app/111111/Other_Free_One/?curator_clanid=1&lt;/a&gt;</description>
+      <link><![CDATA[https://steamcommunity.com/groups/outro/announcements/detail/100000000000000001]]></link>
+      <pubDate>Mon, 05 Oct 2026 10:00:00 +0000</pubDate>
+      <author>Ana</author>
+      <guid isPermaLink="true">https://steamcommunity.com/groups/outro/announcements/detail/100000000000000001</guid>
+    </item>
+    <item>
+      <title>[FREE] Other Free Game Two</title>
+      <description>&lt;a class=&quot;bb_link&quot; href=&quot;https://store.steampowered.com/app/222222/Other_Free_Two/?curator_clanid=1&quot;&gt;https://store.steampowered.com/app/222222/Other_Free_Two/?curator_clanid=1&lt;/a&gt;</description>
+      <link><![CDATA[https://steamcommunity.com/groups/outro/announcements/detail/100000000000000002]]></link>
+      <pubDate>Mon, 05 Oct 2026 11:00:00 +0000</pubDate>
+      <author>Ana</author>
+      <guid isPermaLink="true">https://steamcommunity.com/groups/outro/announcements/detail/100000000000000002</guid>
+    </item>
+    <item>
+      <title>Aviso sem oferta do outro grupo</title>
+      <description>Comum.</description>
+      <link><![CDATA[https://steamcommunity.com/groups/outro/announcements/detail/100000000000000003]]></link>
+      <pubDate>Mon, 05 Oct 2026 12:00:00 +0000</pubDate>
+      <author>Ana</author>
+      <guid isPermaLink="true">https://steamcommunity.com/groups/outro/announcements/detail/100000000000000003</guid>
+    </item>
+  </channel>
+</rss>

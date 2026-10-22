@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "steam-free-games-monitor"
+version = "0.1.0"
+description = "Monitor de feeds RSS da comunidade Steam para alertar sobre jogos gratuitos."
+readme = "README.md"
+requires-python = ">=3.12"
+license = "MIT"
+authors = [{ name = "Marcos" }]
+keywords = ["steam", "rss", "jogos", "notificacoes", "desktop"]
+dependencies = [
+    "PySide6>=6.6",
+    "feedparser>=6.0",
+    "desktop-notifier>=6.2",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+build = ["pyinstaller>=6.10", "pillow>=10.0"]
+
+[project.scripts]
+steam-free-games-monitor = "steam_free_games_monitor.__main__:main"
+
+[project.gui-scripts]
+steam-free-games-monitor-gui = "steam_free_games_monitor.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q -m 'not live'"
+markers = [
+    "live: testes que acessam o feed real da internet (nao rodam por padrao).",
+]
