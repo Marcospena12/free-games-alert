@@ -5,6 +5,6 @@ ofertas multi-loja via GamerPower, alertando sobre publicações relacionadas
 a jogos gratuitos.
 """
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 APP_NAME = "Free Games Hub"
 APP_ID_WINDOWS = "FreeGamesHub"

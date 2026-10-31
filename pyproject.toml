@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "free-games-hub"
-version = "0.1.0"
+version = "0.2.0"
 description = "Central desktop de jogos gratuitos com RSS da comunidade Steam e ofertas multi-loja via GamerPower."
 readme = "README.md"
 requires-python = ">=3.12"
