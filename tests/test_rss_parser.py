@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 
 import pytest
 
-from steam_free_games_monitor.services.rss_parser import RssParseError, parse_feed
+from free_games_hub.services.rss_parser import RssParseError, parse_feed
 
 
 def test_parse_feed_valido(sample_feed_bytes):

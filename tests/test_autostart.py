@@ -7,7 +7,7 @@ from typing import Optional
 
 import pytest
 
-from steam_free_games_monitor.services.autostart import (
+from free_games_hub.services.autostart import (
     AUTOSTART_ARG,
     AutostartError,
     WindowsAutostart,
@@ -47,18 +47,18 @@ def test_comando_usa_pythonw_no_modo_fonte() -> None:
     assert argv == [
         r"C:\venv\Scripts\pythonw.exe",
         "-m",
-        "steam_free_games_monitor",
+        "free_games_hub",
         AUTOSTART_ARG,
     ]
 
 
 def test_comando_usa_executavel_quando_congelado() -> None:
     argv = build_launch_argv(
-        executable=r"C:\Apps\SteamFreeGamesMonitor.exe",
+        executable=r"C:\Apps\FreeGamesHub.exe",
         frozen=True,
     )
 
-    assert argv == [r"C:\Apps\SteamFreeGamesMonitor.exe", AUTOSTART_ARG]
+    assert argv == [r"C:\Apps\FreeGamesHub.exe", AUTOSTART_ARG]
 
 
 def test_comando_cai_para_python_quando_pythonw_nao_existe(
@@ -72,7 +72,7 @@ def test_comando_cai_para_python_quando_pythonw_nao_existe(
     )
 
     assert argv[0] == r"C:\venv\Scripts\python.exe"
-    assert argv[1:] == ["-m", "steam_free_games_monitor", AUTOSTART_ARG]
+    assert argv[1:] == ["-m", "free_games_hub", AUTOSTART_ARG]
 
 
 def test_detecta_argumento_hidden() -> None:

@@ -4,13 +4,13 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta
 
-from steam_free_games_monitor.database.repositories import (
+from free_games_hub.database.repositories import (
     GroupRepository,
     PostRepository,
 )
-from steam_free_games_monitor.models import Post
-from steam_free_games_monitor.services.price_checker import PriceResult
-from steam_free_games_monitor.services.price_refresh import PriceRefreshService
+from free_games_hub.models import Post
+from free_games_hub.services.price_checker import PriceResult
+from free_games_hub.services.price_refresh import PriceRefreshService
 
 GROUP_URL = "https://steamcommunity.com/groups/jogosbra/rss/"
 

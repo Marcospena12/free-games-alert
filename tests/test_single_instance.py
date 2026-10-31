@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from steam_free_games_monitor.ui.single_instance import SingleInstance
+from free_games_hub.ui.single_instance import SingleInstance
 
 
 class FakeSocket:
@@ -16,7 +16,7 @@ class FakeSocket:
 
 
 def _instance() -> SingleInstance:
-    return SingleInstance("SteamFreeGamesMonitorTest")
+    return SingleInstance("FreeGamesHubTest")
 
 
 def test_mensagem_show_emite_ativacao() -> None:

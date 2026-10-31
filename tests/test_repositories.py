@@ -1,13 +1,13 @@
 """Testes da camada de persistência (SQLite)."""
 
-from steam_free_games_monitor.database import (
+from free_games_hub.database import (
     ErrorRepository,
     GroupRepository,
     PostRepository,
     SettingsRepository,
 )
-from steam_free_games_monitor.database.repositories import hash_identifier
-from steam_free_games_monitor.models import Post
+from free_games_hub.database.repositories import hash_identifier
+from free_games_hub.models import Post
 
 GROUP_URL = "https://steamcommunity.com/groups/jogosbra/rss/"
 
@@ -58,6 +58,69 @@ class TestPostRepository:
         assert first == second
         assert first.startswith("hash:")
 
+    def test_in_library_persistencia_e_filtros(self, db):
+        group_id = GroupRepository(db).add("G", GROUP_URL)
+        repo = PostRepository(db)
+
+        post1 = repo.insert_if_missing(
+            Post(group_id=group_id, identifier="g-1", identifier_source="guid", title="[FREE] Game 1")
+        )
+        post2 = repo.insert_if_missing(
+            Post(group_id=group_id, identifier="g-2", identifier_source="guid", title="[FREE] Game 2")
+        )
+        assert post1 is not None and post2 is not None
+        repo.update_price_check(post1.id, status="free")
+        repo.update_price_check(post2.id, status="free")
+
+        assert not repo.get_by_identifier("g-1").in_library
+        assert not repo.get_by_identifier("g-2").in_library
+
+        assert repo.count_free_now(include_in_library=False) == 2
+        assert repo.count_free_now(include_in_library=True) == 2
+
+        # Marca post1 como adicionado à biblioteca
+        repo.set_in_library(post1.id, True)
+
+        # Agora count_free_now sem include_in_library deve ser 1
+        assert repo.count_free_now(include_in_library=False) == 1
+        assert repo.count_free_now(include_in_library=True) == 2
+
+        # list_recent com in_library=False deve trazer apenas post2
+        recent_unclaimed = repo.list_recent(status="free", in_library=False)
+        assert len(recent_unclaimed) == 1
+        assert recent_unclaimed[0]["post"].id == post2.id
+
+        # list_recent com status="in_library" deve trazer apenas post1
+        recent_claimed = repo.list_recent(status="in_library")
+        assert len(recent_claimed) == 1
+        assert recent_claimed[0]["post"].id == post1.id
+        assert recent_claimed[0]["post"].in_library is True
+
+        # Desmarca da biblioteca
+        repo.set_in_library(post1.id, False)
+        assert repo.count_free_now(include_in_library=False) == 2
+        recent_all_free = repo.list_recent(status="free", in_library=False)
+        assert len(recent_all_free) == 2
+
+    def test_list_pending_notifications_ignora_jogos_na_biblioteca(self, db):
+        group_id = GroupRepository(db).add("G", GROUP_URL)
+        repo = PostRepository(db)
+
+        post = repo.insert_if_missing(
+            Post(
+                group_id=group_id,
+                identifier="g-lib-notif",
+                identifier_source="guid",
+                title="[FREE] In Lib",
+                notified=False,
+                in_library=True,
+            )
+        )
+        assert post is not None
+        repo.update_price_check(post.id, status="free")
+        pending = repo.list_pending_notifications()
+        assert len(pending) == 0
+
 
 class TestSettings:
     def test_defaults(self, db):
@@ -92,7 +155,7 @@ class TestErrors:
         assert any(e.group_id is None for e in recent)
 
     def test_erros_nao_perdem_outros_dados(self, db, sample_feed_bytes):
-        from steam_free_games_monitor.services.monitor import MonitorService
+        from free_games_hub.services.monitor import MonitorService
 
         from conftest import FakeFetcher
 
@@ -101,7 +164,7 @@ class TestErrors:
             GROUP_URL: sample_feed_bytes,
         })
         MonitorService(db, fetcher).check_all()
-        from steam_free_games_monitor.services.feed_fetcher import FeedFetchError
+        from free_games_hub.services.feed_fetcher import FeedFetchError
 
         ErrorRepository(db).add(group_id, "feed caiu")
         assert PostRepository(db).count() == 2

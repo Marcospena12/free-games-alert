@@ -11,10 +11,10 @@ os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 import pytest
 from PySide6.QtWidgets import QApplication
 
-from steam_free_games_monitor.database.repositories import SettingsRepository
-from steam_free_games_monitor.services.autostart import WindowsAutostart
-from steam_free_games_monitor.ui.controller import MonitorController
-from steam_free_games_monitor.ui.main_window import MainWindow
+from free_games_hub.database.repositories import SettingsRepository
+from free_games_hub.services.autostart import WindowsAutostart
+from free_games_hub.ui.controller import MonitorController
+from free_games_hub.ui.main_window import MainWindow
 
 
 class FakeFetcher:
@@ -77,7 +77,7 @@ def qapp():
 
 def _build_window(db, monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(
-        "steam_free_games_monitor.ui.main_window.QSystemTrayIcon.isSystemTrayAvailable",
+        "free_games_hub.ui.main_window.QSystemTrayIcon.isSystemTrayAvailable",
         staticmethod(lambda: False),
     )
     settings = SettingsRepository(db)
@@ -158,10 +158,84 @@ def test_notificacao_de_teste_usa_notificador(qapp, db, monkeypatch) -> None:
 
     assert notifier.calls == [
         (
-            "Steam Free Games Monitor",
+            "Free Games Hub",
             "Notificações funcionando!",
             None,
         )
     ]
+    controller.shutdown()
+    window.deleteLater()
+
+
+def test_marcar_como_adicionado_some_do_dashboard(qapp, db, monkeypatch) -> None:
+    from free_games_hub.database.repositories import GroupRepository, PostRepository
+    from free_games_hub.models import Post
+
+    group_id = GroupRepository(db).add("G", "https://steamcommunity.com/groups/g/rss/")
+    posts_repo = PostRepository(db)
+    post = posts_repo.insert_if_missing(
+        Post(
+            group_id=group_id,
+            identifier="g-dash-1",
+            identifier_source="guid",
+            title="[FREE] Super Game",
+            store_url="https://store.steampowered.com/app/100/",
+        )
+    )
+    posts_repo.update_price_check(post.id, status="free")
+
+    window, controller, _notifier, _registry, tray = _build_window(db, monkeypatch)
+
+    # Inicialmente, o dashboard exibe o jogo
+    assert window._dashboard._recent.rowCount() == 1
+    assert window._dashboard._free_value.text() == "1"
+
+    # Simula o clique do usuário para marcar como adicionado à biblioteca
+    window._dashboard.mark_in_library_requested.emit(post.id, True)
+
+    # O jogo sumiu do dashboard e o contador de ofertas grátis zerou!
+    assert window._dashboard._recent.rowCount() == 0
+    assert window._dashboard._free_value.text() == "0"
+    assert tray.free_count == 0
+
+    # O post no banco agora tem in_library = 1
+    stored = posts_repo.get_by_identifier("g-dash-1")
+    assert stored.in_library is True
+
+    controller.shutdown()
+    window.deleteLater()
+
+
+def test_historico_alterna_biblioteca(qapp, db, monkeypatch) -> None:
+    from free_games_hub.database.repositories import GroupRepository, PostRepository
+    from free_games_hub.models import Post
+
+    group_id = GroupRepository(db).add("G", "https://steamcommunity.com/groups/g2/rss/")
+    posts_repo = PostRepository(db)
+    post = posts_repo.insert_if_missing(
+        Post(
+            group_id=group_id,
+            identifier="g-hist-1",
+            identifier_source="guid",
+            title="[FREE] Hist Game",
+            store_url="https://store.steampowered.com/app/200/",
+        )
+    )
+    posts_repo.update_price_check(post.id, status="free")
+
+    window, controller, _notifier, _registry, _tray = _build_window(db, monkeypatch)
+
+    assert window._dashboard._recent.rowCount() == 1
+
+    # Alterna status a partir do histórico
+    window._history_view.mark_in_library_requested.emit(post.id, True)
+    assert posts_repo.get_by_identifier("g-hist-1").in_library is True
+    assert window._dashboard._recent.rowCount() == 0
+
+    # Desmarca da biblioteca
+    window._history_view.mark_in_library_requested.emit(post.id, False)
+    assert posts_repo.get_by_identifier("g-hist-1").in_library is False
+    assert window._dashboard._recent.rowCount() == 1
+
     controller.shutdown()
     window.deleteLater()

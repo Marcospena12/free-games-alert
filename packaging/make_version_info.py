@@ -20,11 +20,11 @@ TEMPLATE = """VSVersionInfo(
     StringFileInfo([
       StringTable('040904B0', [
         StringStruct('CompanyName', 'Marcos'),
-        StringStruct('FileDescription', 'Steam Free Games Monitor'),
+        StringStruct('FileDescription', 'Free Games Hub'),
         StringStruct('FileVersion', '{version}'),
-        StringStruct('InternalName', 'SteamFreeGamesMonitor'),
-        StringStruct('OriginalFilename', 'SteamFreeGamesMonitor.exe'),
-        StringStruct('ProductName', 'Steam Free Games Monitor'),
+        StringStruct('InternalName', 'FreeGamesHub'),
+        StringStruct('OriginalFilename', 'FreeGamesHub.exe'),
+        StringStruct('ProductName', 'Free Games Hub'),
         StringStruct('ProductVersion', '{version}')
       ])
     ]),

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from steam_free_games_monitor.database.connection import (
+from free_games_hub.database.connection import (
     SCHEMA_VERSION,
     connect_db,
     init_db,
@@ -64,14 +64,101 @@ def test_migra_banco_v1_preservando_posts(tmp_path) -> None:
         "price_source",
         "price_checked_at",
         "price_error",
+        "in_library",
     } <= columns
     assert conn.execute("PRAGMA user_version").fetchone()[0] == SCHEMA_VERSION
 
     row = conn.execute(
-        "SELECT title, price_status, price_checked_at FROM posts WHERE identifier = 'guid-1'"
+        "SELECT title, price_status, price_checked_at, in_library FROM posts WHERE identifier = 'guid-1'"
     ).fetchone()
     assert row is not None
     assert row["title"] == "[FREE] Jogo"
     assert row["price_status"] is None
     assert row["price_checked_at"] is None
+    assert row["in_library"] == 0
+    conn.close()
+
+
+def test_migra_banco_v2_com_in_library(tmp_path) -> None:
+    conn = connect_db(tmp_path / "v2.db")
+    conn.executescript(OLD_SCHEMA)
+    for col in (
+        "store_app_id INTEGER",
+        "price_status TEXT",
+        "price_initial_cents INTEGER",
+        "price_final_cents INTEGER",
+        "price_discount_percent INTEGER",
+        "price_currency TEXT",
+        "price_source TEXT",
+        "price_checked_at TEXT",
+        "price_error TEXT",
+    ):
+        conn.execute(f"ALTER TABLE posts ADD COLUMN {col}")
+    conn.execute("INSERT INTO groups (name, url) VALUES ('G2', 'https://example.com/rss2')")
+    conn.execute(
+        "INSERT INTO posts (group_id, identifier, identifier_source, title, price_status) "
+        "VALUES (1, 'guid-2', 'guid', '[FREE] Game 2', 'free')"
+    )
+    conn.execute("PRAGMA user_version = 2")
+    conn.commit()
+
+    init_db(conn)
+
+    assert conn.execute("PRAGMA user_version").fetchone()[0] == SCHEMA_VERSION
+    row = conn.execute("SELECT in_library FROM posts WHERE identifier = 'guid-2'").fetchone()
+    assert row is not None
+    assert row["in_library"] == 0
+    conn.close()
+
+
+def test_migra_banco_v3_para_v4_com_multi_loja(tmp_path) -> None:
+    conn = connect_db(tmp_path / "v3.db")
+    conn.executescript(OLD_SCHEMA)
+    for col in (
+        "store_app_id INTEGER",
+        "price_status TEXT",
+        "price_initial_cents INTEGER",
+        "price_final_cents INTEGER",
+        "price_discount_percent INTEGER",
+        "price_currency TEXT",
+        "price_source TEXT",
+        "price_checked_at TEXT",
+        "price_error TEXT",
+        "in_library INTEGER NOT NULL DEFAULT 0",
+    ):
+        conn.execute(f"ALTER TABLE posts ADD COLUMN {col}")
+    conn.execute("INSERT INTO groups (name, url) VALUES ('G3', 'https://example.com/rss3')")
+    conn.execute(
+        """
+        INSERT INTO posts (group_id, identifier, identifier_source, title, price_status)
+        VALUES (1, 'guid-v3', 'guid', '[FREE] Game v3', 'free')
+        """
+    )
+    conn.execute("PRAGMA user_version = 3")
+    conn.commit()
+
+    init_db(conn)
+
+    assert conn.execute("PRAGMA user_version").fetchone()[0] == 4
+    cols = {row[1] for row in conn.execute("PRAGMA table_info(posts)")}
+    assert {"source", "store", "external_id", "worth_usd", "ends_at", "claim_url", "image_url", "dedup_key"} <= cols
+
+    # Test that existing post has default store and dedup_key
+    row = conn.execute("SELECT store, dedup_key FROM posts WHERE identifier = 'guid-v3'").fetchone()
+    assert row is not None
+    assert row["store"] == "steam"
+    assert row["dedup_key"] == "guid-v3"
+
+    # Test inserting a post with NULL group_id (GamerPower)
+    conn.execute(
+        """
+        INSERT INTO posts (group_id, identifier, identifier_source, title, source, store, dedup_key)
+        VALUES (NULL, 'gp-999', 'gamerpower', 'Epic Game', 'gamerpower', 'epic-games-store', 'gamerpower:999')
+        """
+    )
+    conn.commit()
+    gp_row = conn.execute("SELECT group_id, store FROM posts WHERE identifier = 'gp-999'").fetchone()
+    assert gp_row is not None
+    assert gp_row["group_id"] is None
+    assert gp_row["store"] == "epic-games-store"
     conn.close()

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from steam_free_games_monitor.services.price_checker import (
+from free_games_hub.services.price_checker import (
     PriceCheckError,
     SteamPriceChecker,
     extract_app_id,

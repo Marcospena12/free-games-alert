@@ -5,13 +5,13 @@ from pathlib import Path
 
 import pytest
 
-from steam_free_games_monitor.database.repositories import (
+from free_games_hub.database.repositories import (
     GroupRepository,
     PostRepository,
     SettingsRepository,
 )
-from steam_free_games_monitor.services.feed_fetcher import FeedFetchError
-from steam_free_games_monitor.services.monitor import MonitorService
+from free_games_hub.services.feed_fetcher import FeedFetchError
+from free_games_hub.services.monitor import MonitorService
 
 from conftest import GROUP_URL, OTHER_URL
 
@@ -173,7 +173,7 @@ class TestFailures:
 class TestPersistence:
     def test_dados_preservados_apos_reabrir_banco(self, tmp_path, sample_feed_bytes, fetcher):
         db_path = tmp_path / "persistida.db"
-        from steam_free_games_monitor.database import connect_db, init_db
+        from free_games_hub.database import connect_db, init_db
 
         conn = connect_db(db_path)
         init_db(conn)

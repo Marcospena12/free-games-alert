@@ -1,6 +1,6 @@
 """Testes das regras de negócio: filtro [FREE] e extração do link da loja."""
 
-from steam_free_games_monitor.services.deals import extract_store_url, is_free_title
+from free_games_hub.services.deals import extract_store_url, is_free_title
 
 
 class TestIsFreeTitle:

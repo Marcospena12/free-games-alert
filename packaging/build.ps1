@@ -34,7 +34,7 @@ if ($LASTEXITCODE -ne 0) {
     throw "Não foi possível gerar o ícone."
 }
 
-$version = (& $python -c "import sys; sys.path.insert(0, 'src'); from steam_free_games_monitor import __version__; print(__version__)").Trim()
+$version = (& $python -c "import sys; sys.path.insert(0, 'src'); from free_games_hub import __version__; print(__version__)").Trim()
 if ($LASTEXITCODE -ne 0 -or -not $version) {
     throw "Não foi possível obter a versão do aplicativo."
 }
@@ -51,12 +51,12 @@ Write-Host "Gerando executável com PyInstaller..."
     --clean `
     --distpath (Join-Path $root "dist") `
     --workpath (Join-Path $root "build\pyinstaller") `
-    (Join-Path $PSScriptRoot "steam_free_games_monitor.spec")
+    (Join-Path $PSScriptRoot "free_games_hub.spec")
 if ($LASTEXITCODE -ne 0) {
     throw "O PyInstaller falhou."
 }
 
-$exe = Join-Path $root "dist\SteamFreeGamesMonitor\SteamFreeGamesMonitor.exe"
+$exe = Join-Path $root "dist\FreeGamesHub\FreeGamesHub.exe"
 if (-not (Test-Path -LiteralPath $exe)) {
     throw "Executável não encontrado após o build: $exe"
 }
@@ -77,12 +77,12 @@ if (-not $iscc) {
 }
 
 Write-Host "Gerando instalador com Inno Setup..."
-& $iscc "/DAppVersion=$version" (Join-Path $PSScriptRoot "SteamFreeGamesMonitor.iss")
+& $iscc "/DAppVersion=$version" (Join-Path $PSScriptRoot "FreeGamesHub.iss")
 if ($LASTEXITCODE -ne 0) {
     throw "O Inno Setup falhou."
 }
 
-$installer = Join-Path $root "dist\SteamFreeGamesMonitor-Setup-$version.exe"
+$installer = Join-Path $root "dist\FreeGamesHub-Setup-$version.exe"
 if (-not (Test-Path -LiteralPath $installer)) {
     throw "Instalador não encontrado após o build: $installer"
 }

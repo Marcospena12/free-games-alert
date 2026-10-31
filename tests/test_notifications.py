@@ -1,13 +1,13 @@
 """Testes do serviço de notificações de ofertas confirmadas."""
 
-from steam_free_games_monitor.database import ErrorRepository
-from steam_free_games_monitor.database.repositories import (
+from free_games_hub.database import ErrorRepository
+from free_games_hub.database.repositories import (
     GroupRepository,
     PostRepository,
     SettingsRepository,
 )
-from steam_free_games_monitor.models import Post
-from steam_free_games_monitor.notifications.service import NotificationService
+from free_games_hub.models import Post
+from free_games_hub.notifications.service import NotificationService
 
 GROUP_URL = "https://steamcommunity.com/groups/jogosbra/rss/"
 

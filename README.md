@@ -1,17 +1,31 @@
-# Steam Free Games Monitor
+# Free Games Hub
 
-Monitor de feeds RSS da comunidade Steam para identificar publicações relacionadas a jogos gratuitos e notificar o usuário. Focado em simplicidade, confiabilidade e portabilidade entre Windows e Linux.
+[![CI](https://github.com/Marcospena12/free-games-alert/actions/workflows/ci.yml/badge.svg)](https://github.com/Marcospena12/free-games-alert/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-blue.svg)](pyproject.toml)
+
+Monitor de jogos gratuitos com suporte a feeds RSS da comunidade Steam e integração multi-loja via GamerPower API (Steam, Epic Games Store, GOG, Itch.io, Ubisoft Connect, Battle.net, EA App, Prime Gaming, DRM-Free, Consoles e Mobile). Focado em simplicidade, confiabilidade e portabilidade entre Windows e Linux.
 
 ## Objetivo
 
-O Steam Free Games Monitor monitora feeds RSS de grupos da comunidade Steam, identifica novas publicações cujo título contenha `[FREE]` e notifica o usuário. A aplicação é puramente desktop, não depende de n8n, servidores remotos, serviços pagos ou APIs de IA.
+O Free Games Hub monitora ofertas de jogos 100% gratuitos a partir de múltiplas fontes confiáveis:
+1. **Feeds RSS de grupos da comunidade Steam** (detecta publicações com a marca `[FREE]`).
+2. **GamerPower API** (fonte global multi-loja que reúne giveaways ativos da Steam, Epic Games Store, GOG, Itch.io, DRM-Free, PlayStation, Xbox, Switch e Mobile).
+
+A aplicação é puramente desktop, não depende de n8n, serviços pagos ou APIs de IA.
+
+## Fontes de Dados e Atribuição
+
+- **GamerPower API:** Este aplicativo utiliza a API pública oficial da [GamerPower.com](https://www.gamerpower.com) para obter dados em tempo real sobre ofertas ativas em múltiplas plataformas.
+  * *Atribuição legal:* Conforme os termos de uso da GamerPower, todas as notificações e visualizações associadas a essa fonte creditam os dados com link direto à **GamerPower.com**.
+  * *Limitação:* A GamerPower API não categoriza ofertas por gênero/tags; portanto, filtros por gênero não estão incluídos nesta fonte.
 
 ## Tecnologias utilizadas
 
 - **Python 3.12+**
 - **PySide6** (interface desktop Qt)
 - **feedparser** (leitura e análise de feeds RSS/Atom)
-- **sqlite3** (persistência local, via módulo padrão)
+- **sqlite3** (persistência local, via módulo padrão, Schema v4)
 - **desktop-notifier** (notificações nativas cross-platform: Windows via WinRT, Linux via D-Bus)
 - **pytest** (testes automatizados)
 
@@ -40,10 +54,10 @@ pip install -e ".[dev]"
 
 ```powershell
 # Modo recomendado (módulo Python)
-python -m steam_free_games_monitor
+python -m free_games_hub
 
 # Ou via script definido no pyproject
-steam-free-games-monitor
+free-games-hub
 ```
 
 ## Como rodar os testes
@@ -58,21 +72,30 @@ pytest
 
 Os dados são salvos em um diretório de dados adequado ao sistema operacional, nunca no diretório de trabalho atual.
 
-- **Windows:** `%APPDATA%\SteamFreeGamesMonitor\` (normalmente `C:\Users\<SeuUsuario>\AppData\Roaming\SteamFreeGamesMonitor\`)
-- **Linux:** `~/.local/share/steam-free-games-monitor/`
+- **Windows:** `%APPDATA%\FreeGamesHub\` (normalmente `C:\Users\<SeuUsuario>\AppData\Roaming\FreeGamesHub\`)
+- **Linux:** `~/.local/share/free-games-hub/`
 
 O banco SQLite principal é:
 
-- `steam_free_games_monitor.db`
+- `free_games_hub.db`
 
 O log da aplicação fica em `app.log` no mesmo diretório, com rotação automática. Quando há terminal, os logs também são exibidos nele. Não são gerados arquivos `.env` nem dados sensíveis.
+
+Na primeira execução após a renomeação de *Steam Free Games Monitor* para *Free Games Hub*, o banco antigo (`%APPDATA%\SteamFreeGamesMonitor\steam_free_games_monitor.db`) é copiado automaticamente para o novo diretório, preservando histórico, configurações e filtros.
 
 Para forçar um diretório diferente (útil em testes):
 
 ```powershell
-$env:SFGM_DATA_DIR = "C:\temp\test-sfgm"
-python -m steam_free_games_monitor
+$env:FGH_DATA_DIR = "C:\temp\test-fgh"
+python -m free_games_hub
 ```
+
+## Aparência e tela de abertura
+
+- **Barra de título escura:** no Windows, a janela usa a API nativa DWM para deixar a barra de título com o mesmo tom do tema (`#0b0f17`), preservando botões, cantos arredondados, Snap Layouts e arrasto nativos.
+- **Splash screen:** ao abrir (fora do modo `--hidden`), a aplicação exibe uma logo flutuante com fundo transparente por cerca de 3 segundos e então revela o painel principal com transição suave. Um clique na splash pula a espera.
+- **Arquivo da splash:** coloque a imagem PNG com transparência em `packaging\assets\splash.png` (usada no build) ou em `src\free_games_hub\assets\splash.png` (lida direto em modo desenvolvimento). Se o arquivo não existir, a aplicação usa o ícone padrão (`app.png`) como fallback.
+- **Ícone do app:** a fonte é `packaging\assets\app.png`; depois de trocá-la, execute `& ".\.venv\Scripts\python.exe" .\packaging\generate_icon.py` para regenerar os `.ico` e sincronizar `src\free_games_hub\assets\`.
 
 ## Como adicionar novos feeds RSS
 
@@ -93,6 +116,36 @@ O feed `https://steamcommunity.com/groups/jogosbra/rss/` (**Comunidade Jogos Bra
 - **Tolerância a falhas:** um único grupo com erro não interrompe a verificação dos demais grupos ativos.
 - **Proteção contra concorrência:** não é possível iniciar uma nova verificação (automática ou manual) enquanto outra estiver em andamento (solicitações concorrentes são ignoradas).
 - **Preferências:** notificações podem ser habilitadas/desabilitadas na aba **Configurações**.
+
+## Seleção de Lojas e Filtros Avançados
+
+Na aba **Configurações**, você pode personalizar detalhadamente a captura de ofertas:
+
+- **Habilitar GamerPower API:** ativa ou desativa globalmente a consulta à API multi-loja.
+- **Seleção de Lojas:** marque individualmente as lojas de interesse:
+  * Steam
+  * Epic Games Store
+  * GOG
+  * Itch.io
+  * Ubisoft Connect
+  * Battle.net
+  * EA App (Origin)
+  * Prime Gaming
+  * Smilegate Stove
+  * VR (Realidade Virtual)
+  * DRM-Free
+  * PC (Outros)
+  * PlayStation (PS4 / PS5)
+  * Xbox (Xbox One / Xbox Series X|S)
+  * Nintendo Switch
+  * Mobile (Android / iOS)
+  * Ofertas com plataforma genérica (`PC`) são refinadas por título e URL, permitindo detectar lojas como Stove, Prime Gaming, Ubisoft e Battle.net.
+- **Tipos de Ofertas:**
+  * Jogos completos
+  * DLCs e Itens / Moedas
+  * Betas e Acesso antecipado
+- **Filtro de Prazo:** opção de ignorar ofertas permanentes ou sem prazo definido (`end_date = "N/A"`).
+- **Deduplicação Inteligente:** ofertas que aparecem em múltiplos locais (ex.: grupo da Steam e na GamerPower) são unificadas pelo ID canônico (`steam:app:{id}`) ou chave de loja/título, evitando alertas repetidos. Se uma oferta já cadastrada tiver seu prazo estendido, a data de término é atualizada silenciosamente.
 
 ## Validade das ofertas (ainda está grátis?)
 
@@ -135,7 +188,7 @@ Cada publicação é conferida na loja da Steam para saber se a oferta continua 
 
 ## Instalador Windows
 
-O instalador é gerado com **PyInstaller** (build `onedir`) e **Inno Setup 6**. A instalação é por usuário, em `%LOCALAPPDATA%\Programs\SteamFreeGamesMonitor`, sem exigir administrador. O aplicativo instalado não precisa de Python nem de Qt na máquina.
+O instalador é gerado com **PyInstaller** (build `onedir`) e **Inno Setup 6**. A instalação é por usuário, em `%LOCALAPPDATA%\Programs\FreeGamesHub`, sem exigir administrador. O aplicativo instalado não precisa de Python nem de Qt na máquina.
 
 ### Requisitos de build (somente na máquina de desenvolvimento)
 
@@ -155,8 +208,8 @@ winget install --id JRSoftware.InnoSetup -e
 
 O script executa os testes, gera o ícone, cria os metadados de versão, roda o PyInstaller e compila o instalador. Saídas:
 
-- `dist\SteamFreeGamesMonitor\SteamFreeGamesMonitor.exe`
-- `dist\SteamFreeGamesMonitor-Setup-<versão>.exe`
+- `dist\FreeGamesHub\FreeGamesHub.exe`
+- `dist\FreeGamesHub-Setup-<versão>.exe`
 
 Para gerar apenas o executável durante o desenvolvimento:
 
@@ -168,8 +221,9 @@ Para gerar apenas o executável durante o desenvolvimento:
 
 - Atalho no Menu Iniciar; atalho opcional na área de trabalho.
 - Opção de abrir o aplicativo ao final da instalação.
-- A instalação por cima de uma versão anterior preserva o banco em `%APPDATA%\SteamFreeGamesMonitor\` e atualiza o executável.
-- A desinstalação remove atalhos, arquivos, a entrada de autostart e o próprio aplicativo, mas **preserva o banco e os logs** em `%APPDATA%\SteamFreeGamesMonitor\`.
+- A instalação por cima de uma versão anterior preserva o banco em `%APPDATA%\FreeGamesHub\` e atualiza o executável.
+- Ao atualizar a partir do antigo *Steam Free Games Monitor*, o instalador encerra a instância antiga, migra a entrada de autostart e remove a pasta antiga em `%LOCALAPPDATA%\Programs\SteamFreeGamesMonitor`.
+- A desinstalação remove atalhos, arquivos, a entrada de autostart e o próprio aplicativo, mas **preserva o banco e os logs** em `%APPDATA%\FreeGamesHub\`.
 - O autostart é desligado por padrão; marque a opção nas Configurações para ativar.
 - O instalador atual não é assinado digitalmente. Na primeira execução, o Windows pode exibir o aviso do SmartScreen; use **Mais informações → Executar assim mesmo** ao instalar o próprio build.
 - Caso o app esteja aberto durante uma atualização ou desinstalação, o instalador solicita o encerramento via `--quit` antes de substituir os arquivos.
@@ -178,7 +232,7 @@ Para gerar apenas o executável durante o desenvolvimento:
 
 - O build é `onedir` em vez de `--onefile` para iniciar mais rápido, reduzir falsos positivos de antivírus e simplificar atualizações.
 - O `desktop-notifier` usa WinRT no Windows; o spec do PyInstaller inclui os módulos nativos necessários e os recursos padrão da biblioteca.
-- O executável é `windowed`; por isso, o diagnóstico fica em `%APPDATA%\SteamFreeGamesMonitor\app.log`.
+- O executável é `windowed`; por isso, o diagnóstico fica em `%APPDATA%\FreeGamesHub\app.log`.
 - Não há suporte a empacotamento para macOS nesta versão.
 
 ## Comandos rápidos (resumo)
@@ -188,5 +242,5 @@ Para gerar apenas o executável durante o desenvolvimento:
 | Criar ambiente virtual | `py -3.12 -m venv .venv` |
 | Ativar ambiente | `.\.venv\Scripts\Activate.ps1` |
 | Instalar dependências | `pip install -e ".[dev]"` |
-| Executar aplicação | `python -m steam_free_games_monitor` |
+| Executar aplicação | `python -m free_games_hub` |
 | Executar testes | `pytest` |

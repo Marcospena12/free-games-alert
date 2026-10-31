@@ -3,7 +3,7 @@
 import sys
 import types
 
-from steam_free_games_monitor.notifications import backend as backend_module
+from free_games_hub.notifications import backend as backend_module
 
 
 class FakeNotification:

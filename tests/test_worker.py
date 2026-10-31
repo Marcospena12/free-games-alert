@@ -4,14 +4,14 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from steam_free_games_monitor.database import connect_db, init_db
-from steam_free_games_monitor.database.repositories import (
+from free_games_hub.database import connect_db, init_db
+from free_games_hub.database.repositories import (
     GroupRepository,
     PostRepository,
 )
-from steam_free_games_monitor.services.monitor import MonitorService
-from steam_free_games_monitor.services.price_checker import PriceResult
-from steam_free_games_monitor.ui.worker import CheckWorker
+from free_games_hub.services.monitor import MonitorService
+from free_games_hub.services.price_checker import PriceResult
+from free_games_hub.ui.worker import CheckWorker
 
 from conftest import GROUP_URL
 

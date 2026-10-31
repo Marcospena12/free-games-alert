@@ -6,8 +6,8 @@ from pathlib import Path
 
 import pytest
 
-from steam_free_games_monitor.database import connect_db, init_db
-from steam_free_games_monitor.models import ParsedItem
+from free_games_hub.database import connect_db, init_db
+from free_games_hub.models import ParsedItem
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 GROUP_URL = "https://steamcommunity.com/groups/jogosbra/rss/"
@@ -30,7 +30,7 @@ def sample_feed_next_bytes() -> bytes:
 
 @pytest.fixture
 def sample_items(sample_feed_bytes: bytes) -> list[ParsedItem]:
-    from steam_free_games_monitor.services.rss_parser import parse_feed
+    from free_games_hub.services.rss_parser import parse_feed
 
     return parse_feed(sample_feed_bytes)
 
@@ -68,3 +68,12 @@ def db(tmp_path):
     init_db(conn)
     yield conn
     conn.close()
+
+
+@pytest.fixture(scope="session")
+def qapp():
+    import os
+    os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+    from PySide6.QtWidgets import QApplication
+    app = QApplication.instance() or QApplication([])
+    yield app

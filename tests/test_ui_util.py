@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from steam_free_games_monitor.models import Post
-from steam_free_games_monitor.ui.util import fmt_post_status, fmt_price, fmt_price_tooltip
+from free_games_hub.models import Post
+from free_games_hub.ui.util import fmt_post_status, fmt_price, fmt_price_tooltip
 
 
 def _post(**kwargs) -> Post:
@@ -30,6 +30,7 @@ def test_formata_precos_em_reais() -> None:
 
 def test_status_de_oferta_gratuita() -> None:
     assert fmt_post_status(_post(price_status="free")) == "Grátis (-100%)"
+    assert fmt_post_status(_post(price_status="free", in_library=True)) == "Grátis (-100%) · Na biblioteca"
 
 
 def test_status_de_oferta_expirada_com_preco() -> None:
@@ -40,6 +41,14 @@ def test_status_de_oferta_expirada_com_preco() -> None:
         price_discount_percent=81,
     )
     assert fmt_post_status(post) == "Expirado · R$ 2,62 (-81%)"
+    post_lib = _post(
+        price_status="not_free",
+        price_initial_cents=1379,
+        price_final_cents=262,
+        price_discount_percent=81,
+        in_library=True,
+    )
+    assert fmt_post_status(post_lib) == "Expirado · R$ 2,62 (-81%) · Na biblioteca"
 
 
 def test_status_f2p_nao_verificado_e_pendente() -> None:
@@ -59,3 +68,32 @@ def test_tooltip_mostra_preco_e_verificacao() -> None:
     assert "Preço original: R$ 39,99" in tooltip
     assert "Preço atual: R$ 41,00" in tooltip
     assert "Verificado em: 21/10/2026 20:05" in tooltip
+
+
+def test_open_url_steam_quando_aberta(monkeypatch):
+    from unittest.mock import patch
+    from free_games_hub.ui.util import open_url
+
+    opened_urls = []
+    monkeypatch.setattr(
+        "free_games_hub.ui.util.QDesktopServices.openUrl",
+        lambda qurl: opened_urls.append(qurl.toString()),
+    )
+    with patch("free_games_hub.services.steam.is_steam_running", return_value=True):
+        open_url("https://store.steampowered.com/app/730/CS2/", app_id=730)
+        assert opened_urls == ["steam://store/730"]
+
+
+def test_open_url_navegador_quando_steam_fechada(monkeypatch):
+    from unittest.mock import patch
+    from free_games_hub.ui.util import open_url
+
+    opened_urls = []
+    monkeypatch.setattr(
+        "free_games_hub.ui.util.QDesktopServices.openUrl",
+        lambda qurl: opened_urls.append(qurl.toString()),
+    )
+    with patch("free_games_hub.services.steam.is_steam_running", return_value=False):
+        url = "https://store.steampowered.com/app/730/CS2/"
+        open_url(url, app_id=730)
+        assert opened_urls == [url]
