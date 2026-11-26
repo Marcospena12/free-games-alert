@@ -52,6 +52,7 @@ linux:
       arch:
         - x64
   icon: icon.png
+  syncDesktopName: true
   category: Utility
   maintainer: Marcos
   synopsis: Monitor de jogos gratuitos

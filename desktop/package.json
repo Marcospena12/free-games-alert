@@ -6,6 +6,8 @@
   "author": "Marcos",
   "license": "MIT",
   "private": true,
+  "homepage": "https://github.com/Marcospena12/free-games-alert",
+  "desktopName": "free-games-hub",
   "scripts": {
     "dev": "electron-vite dev",
     "build": "electron-vite build",
