@@ -311,7 +311,7 @@ class MainWindow(QWidget):
         state_text = monitor_state_text(result, running)
 
         recent = self._posts_repo.list_recent(
-            limit=100, status="free", in_library=False
+            limit=100, status="free", in_library=False, active_only=True
         )
         self._dashboard.refresh(
             free_count=free_count,

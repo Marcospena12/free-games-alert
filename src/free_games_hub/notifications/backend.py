@@ -12,7 +12,8 @@ import asyncio
 import sys
 import threading
 import webbrowser
-from typing import Callable, Optional
+from pathlib import Path
+from typing import Callable, Optional, Union
 
 from .. import APP_NAME
 from ..config import NOTIFIER_TIMEOUT_SECONDS
@@ -25,9 +26,11 @@ class DesktopNotifierBackend:
         self,
         app_name: str = APP_NAME,
         on_error: Optional[Callable[[str], None]] = None,
+        app_icon_path: Optional[Union[str, Path]] = None,
     ) -> None:
         self._app_name = app_name
         self.on_error = on_error
+        self._app_icon_path = Path(app_icon_path) if app_icon_path else None
         self._loop: Optional[asyncio.AbstractEventLoop] = None
         self._notifier = None
         self._ready = threading.Event()
@@ -42,9 +45,15 @@ class DesktopNotifierBackend:
     def _run_loop(self) -> None:
         from desktop_notifier import DesktopNotifier
 
+        kwargs = {"app_name": self._app_name}
+        if self._app_icon_path is not None and self._app_icon_path.is_file():
+            from desktop_notifier import Icon
+
+            kwargs["app_icon"] = Icon(path=self._app_icon_path)
+
         self._loop = asyncio.new_event_loop()
         asyncio.set_event_loop(self._loop)
-        self._notifier = DesktopNotifier(app_name=self._app_name)
+        self._notifier = DesktopNotifier(**kwargs)
         self._ready.set()
         self._loop.run_forever()
 
@@ -98,11 +107,16 @@ class NullNotifierWithError:
 
 def build_notifier(
     on_error: Optional[Callable[[str], None]] = None,
+    app_icon_path: Optional[Union[str, Path]] = None,
 ) -> object:
     """Cria o notificador adequado à plataforma (Windows/Linux) ou o fallback."""
     if sys.platform in ("win32", "linux"):
         try:
-            return DesktopNotifierBackend(app_name=APP_NAME, on_error=on_error)
+            return DesktopNotifierBackend(
+                app_name=APP_NAME,
+                on_error=on_error,
+                app_icon_path=app_icon_path,
+            )
         except Exception as exc:  # noqa: BLE001 - degradação graciosa
             return NullNotifierWithError(
                 f"notificações nativas indisponíveis ({exc})", on_error=on_error

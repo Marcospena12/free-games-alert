@@ -102,6 +102,59 @@ class TestPostRepository:
         recent_all_free = repo.list_recent(status="free", in_library=False)
         assert len(recent_all_free) == 2
 
+    def test_free_agora_ignora_ofertas_expiradas(self, db):
+        from datetime import datetime, timedelta
+
+        repo = PostRepository(db)
+        now = datetime.now()
+        active = repo.insert_if_missing(
+            Post(
+                group_id=None,
+                identifier="active",
+                identifier_source="guid",
+                title="[FREE] Ativa",
+                price_status="free",
+                ends_at=now + timedelta(days=1),
+            )
+        )
+        no_end = repo.insert_if_missing(
+            Post(
+                group_id=None,
+                identifier="no-end",
+                identifier_source="guid",
+                title="[FREE] Sem prazo",
+                price_status="free",
+            )
+        )
+        expired = repo.insert_if_missing(
+            Post(
+                group_id=None,
+                identifier="expired",
+                identifier_source="guid",
+                title="[FREE] Expirada",
+                price_status="free",
+                ends_at=now - timedelta(days=1),
+            )
+        )
+        assert active is not None and no_end is not None and expired is not None
+
+        # Métrica "grátis agora" ignora expiradas; include_expired mantém o total bruto.
+        assert repo.count_free_now(include_in_library=False) == 2
+        assert (
+            repo.count_free_now(include_in_library=False, include_expired=True) == 3
+        )
+
+        active_rows = repo.list_recent(status="free", active_only=True)
+        active_ids = {row["post"].id for row in active_rows}
+        assert active_ids == {active.id, no_end.id}
+
+        all_ids = {row["post"].id for row in repo.list_recent(status="free")}
+        assert all_ids == {active.id, no_end.id, expired.id}
+
+        # Notificações pendentes também ignoram ofertas vencidas.
+        pending_ids = {row["post"].id for row in repo.list_pending_notifications()}
+        assert pending_ids == {active.id, no_end.id}
+
     def test_list_pending_notifications_ignora_jogos_na_biblioteca(self, db):
         group_id = GroupRepository(db).add("G", GROUP_URL)
         repo = PostRepository(db)

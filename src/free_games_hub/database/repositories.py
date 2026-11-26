@@ -263,8 +263,15 @@ class PostRepository:
         status: Optional[str] = None,
         in_library: Optional[bool] = None,
         store: Optional[str] = None,
+        active_only: bool = False,
+        now: Optional[datetime] = None,
+        search: Optional[str] = None,
     ) -> list[dict]:
-        """Publicações recentes com o nome do grupo ou fonte, para exibição."""
+        """Publicações recentes com o nome do grupo ou fonte, para exibição.
+
+        ``active_only`` oculta ofertas cujo prazo (``ends_at``) já passou.
+        Posts sem prazo definido são considerados ativos.
+        """
         clauses: list[str] = []
         params: list[object] = []
 
@@ -283,6 +290,14 @@ class PostRepository:
         if store:
             clauses.append("p.store = ?")
             params.append(store)
+
+        if search and search.strip():
+            clauses.append("p.title LIKE ? COLLATE NOCASE")
+            params.append(f"%{search.strip()}%")
+
+        if active_only:
+            clauses.append("(p.ends_at IS NULL OR p.ends_at >= ?)")
+            params.append(_to_iso(now or datetime.now()))
 
         where = f"WHERE {' AND '.join(clauses)}" if clauses else ""
         params.append(limit)
@@ -306,26 +321,41 @@ class PostRepository:
             result.append({"post": post, "group_name": group_name})
         return result
 
-    def count_free_now(self, include_in_library: bool = False) -> int:
+    def count_free_now(
+        self,
+        include_in_library: bool = False,
+        *,
+        include_expired: bool = False,
+        now: Optional[datetime] = None,
+    ) -> int:
+        """Ofertas grátis válidas agora (expiradas ficam de fora por padrão)."""
         where = "WHERE price_status = 'free'"
+        params: list[object] = []
         if not include_in_library:
             where += " AND in_library = 0"
+        if not include_expired:
+            where += " AND (ends_at IS NULL OR ends_at >= ?)"
+            params.append(_to_iso(now or datetime.now()))
         row = self._conn.execute(
-            f"SELECT COUNT(*) AS n FROM posts {where}"
+            f"SELECT COUNT(*) AS n FROM posts {where}", params
         ).fetchone()
         return int(row["n"])
 
     def list_pending_notifications(self, limit: int = 20) -> list[dict]:
-        """Ofertas confirmadas como grátis que ainda não foram notificadas."""
+        """Ofertas confirmadas como grátis que ainda não foram notificadas.
+
+        Ofertas com prazo já vencido são ignoradas (não faz sentido notificar).
+        """
         rows = self._conn.execute(
             """
             SELECT p.*, g.name AS group_name
             FROM posts p LEFT JOIN groups g ON g.id = p.group_id
             WHERE p.notified = 0 AND p.price_status = 'free' AND p.in_library = 0
+              AND (p.ends_at IS NULL OR p.ends_at >= ?)
             ORDER BY p.discovered_at DESC, p.id DESC
             LIMIT ?
             """,
-            (limit,),
+            (_to_iso(datetime.now()), limit),
         ).fetchall()
         result = []
         for row in rows:

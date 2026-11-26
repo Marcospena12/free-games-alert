@@ -4,23 +4,16 @@ from __future__ import annotations
 
 import logging
 import sys
-from logging.handlers import RotatingFileHandler
 
 from PySide6.QtCore import QCoreApplication
 from PySide6.QtWidgets import QApplication
 
 from . import APP_NAME, __version__
-from .config import (
-    DEFAULT_CHECK_INTERVAL_MINUTES,
-    DEFAULT_FEED_URL,
-    DEFAULT_GROUP_NAME,
-    REQUEST_TIMEOUT_SECONDS,
-    SETTINGS_KEY_CLOSE_TO_TRAY,
-    data_dir,
-    database_path,
-)
+from .bootstrap import ensure_defaults
+from .config import REQUEST_TIMEOUT_SECONDS, database_path
 from .database import connect_db, init_db
-from .database.repositories import GroupRepository, SettingsRepository
+from .database.repositories import SettingsRepository
+from .logging_setup import configure_logging
 from .notifications.backend import build_notifier
 from .services.autostart import (
     AUTOSTART_ARG,
@@ -35,35 +28,7 @@ from .ui.single_instance import QUIT_ARG, SingleInstance
 from .ui.splash import SplashScreen
 from .ui.tray import build_app_icon
 
-LOG_FILENAME = "app.log"
-LOG_FORMAT = "%(asctime)s %(levelname)s %(name)s - %(message)s"
 logger = logging.getLogger(__name__)
-
-
-def _configure_logging() -> None:
-    """Configura log em arquivo e, quando existir, também no terminal."""
-    handlers: list[logging.Handler] = []
-    if sys.stderr is not None:
-        handlers.append(logging.StreamHandler())
-    try:
-        handlers.append(
-            RotatingFileHandler(
-                data_dir() / LOG_FILENAME,
-                maxBytes=1_000_000,
-                backupCount=3,
-                encoding="utf-8",
-            )
-        )
-    except OSError:
-        pass
-    if not handlers:
-        handlers.append(logging.NullHandler())
-    logging.basicConfig(
-        level=logging.INFO,
-        format=LOG_FORMAT,
-        handlers=handlers,
-        force=True,
-    )
 
 
 def _request_quit(qt_args: list[str]) -> int:
@@ -89,7 +54,7 @@ def main() -> int:
     qt_args = [
         arg for arg in sys.argv if arg not in (AUTOSTART_ARG, QUIT_ARG)
     ]
-    _configure_logging()
+    configure_logging()
     if quit_requested:
         return _request_quit(qt_args)
 
@@ -109,26 +74,12 @@ def main() -> int:
         splash.start()
         app.processEvents()
 
-    # Conexão inicial
+    # Conexão inicial: schema atual + grupo e configurações padrão.
     db_path = database_path()
     conn = connect_db(db_path)
     init_db(conn)
-
-    # Cadastro automático do feed inicial
-    group_repo = GroupRepository(conn)
-    if group_repo.get_by_url(DEFAULT_FEED_URL) is None:
-        group_repo.add(DEFAULT_GROUP_NAME, DEFAULT_FEED_URL, active=True)
-
-    # Configurações padrão
+    ensure_defaults(conn)
     settings_repo = SettingsRepository(conn)
-    if settings_repo.get("check_interval_minutes") is None:
-        settings_repo.set("check_interval_minutes", str(DEFAULT_CHECK_INTERVAL_MINUTES))
-    if settings_repo.get("notifications_enabled") is None:
-        settings_repo.set("notifications_enabled", "1")
-    if settings_repo.get("gamerpower_enabled") is None:
-        settings_repo.set("gamerpower_enabled", "1")
-    if settings_repo.get(SETTINGS_KEY_CLOSE_TO_TRAY) is None:
-        settings_repo.set(SETTINGS_KEY_CLOSE_TO_TRAY, "1")
 
     # Serviços
     fetcher = UrlFeedFetcher(timeout=REQUEST_TIMEOUT_SECONDS)
