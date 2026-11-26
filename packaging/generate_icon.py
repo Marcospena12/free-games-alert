@@ -1,4 +1,9 @@
-"""Gera packaging/assets/app.ico a partir do ícone usado pela bandeja."""
+"""Gera os ícones do app a partir de ``packaging/assets/app.png``.
+
+Saídas: ``app.ico``, ``src/free_games_hub/assets/app.ico`` e ``app.png``.
+A logo é recortada nas bordas transparentes e centralizada em um quadrado,
+mantendo a proporção e aproveitando melhor os tamanhos pequenos do ícone.
+"""
 
 from __future__ import annotations
 
@@ -14,10 +19,13 @@ from PySide6.QtGui import QGuiApplication
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
+sys.path.insert(0, str(ROOT / "scripts"))
 
 from free_games_hub.ui.tray import build_app_icon
+from image_assets import save_png, squared_logo
 
 SIZES = (16, 24, 32, 48, 64, 128, 256)
+ICON_CANVAS = 1024
 
 
 def main() -> None:
@@ -33,16 +41,10 @@ def main() -> None:
 
     if png_src.exists():
         with Image.open(png_src) as img:
-            img = img.convert("RGBA")
-            max_dim = max(img.width, img.height)
-            if img.width != img.height:
-                square = Image.new("RGBA", (max_dim, max_dim), (0, 0, 0, 0))
-                offset = ((max_dim - img.width) // 2, (max_dim - img.height) // 2)
-                square.paste(img, offset)
-                img = square
-            img.save(output_pkg_ico, format="ICO", sizes=[(s, s) for s in SIZES])
-            img.save(output_src_ico, format="ICO", sizes=[(s, s) for s in SIZES])
-            img.save(output_src_png, "PNG")
+            icon = squared_logo(img, ICON_CANVAS)
+            icon.save(output_pkg_ico, format="ICO", sizes=[(s, s) for s in SIZES])
+            icon.save(output_src_ico, format="ICO", sizes=[(s, s) for s in SIZES])
+            save_png(icon, output_src_png)
         print(f"Ícone gerado a partir de {png_src}")
         return
 
