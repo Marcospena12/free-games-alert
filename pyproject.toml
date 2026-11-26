@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "free-games-hub"
-version = "0.2.0"
+version = "0.3.0"
 description = "Central desktop de jogos gratuitos com RSS da comunidade Steam e ofertas multi-loja via GamerPower."
 readme = "README.md"
 requires-python = ">=3.12"
@@ -15,10 +15,12 @@ dependencies = [
     "PySide6>=6.6",
     "feedparser>=6.0",
     "desktop-notifier>=6.2",
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.29",
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8.0"]
+dev = ["pytest>=8.0", "httpx>=0.27"]
 build = ["pyinstaller>=6.10", "pillow>=10.0"]
 
 [project.scripts]

@@ -19,8 +19,15 @@ htmlcov/
 # Build / empacotamento
 build/
 dist/
+backend-dist/
 *.spec
 !packaging/*.spec
+
+# Electron / Node
+desktop/node_modules/
+desktop/out/
+desktop/dist/
+desktop/.vite/
 
 # Banco de dados local
 *.db

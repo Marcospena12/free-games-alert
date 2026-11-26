@@ -33,3 +33,29 @@ jobs:
 
       - name: Rodar testes
         run: python -m pytest
+
+  desktop:
+    name: Desktop (typecheck + build)
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: desktop/package-lock.json
+
+      - name: Instalar dependências
+        working-directory: desktop
+        run: npm ci
+
+      - name: Typecheck
+        working-directory: desktop
+        run: npm run typecheck
+
+      - name: Build (renderer + main + preload)
+        working-directory: desktop
+        run: npm run build
