@@ -1,0 +1,67 @@
+appId: br.com.marco.freegameshub
+productName: Free Games Hub
+executableName: free-games-hub
+copyright: Copyright © 2026 Marcos
+
+directories:
+  output: dist
+  buildResources: assets
+
+files:
+  - out/**
+  - package.json
+
+# backend-dist é montado por scripts/build_desktop.py:
+#   free-games-hub-backend(.exe) + _internal/ + spa/ + assets/
+# Em produção o main process procura esses arquivos em process.resourcesPath.
+extraResources:
+  - from: ../backend-dist
+    to: .
+    filter:
+      - "**/*"
+
+asar: true
+
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  icon: icon.ico
+  artifactName: FreeGamesHub-Setup-${version}.${ext}
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Free Games Hub
+  uninstallDisplayName: Free Games Hub
+  deleteAppDataOnUninstall: false
+  runAfterFinish: true
+  # Migra a 0.2.0 (Inno Setup) e o autostart antes de instalar.
+  include: installer.nsh
+
+linux:
+  target:
+    - target: AppImage
+      arch:
+        - x64
+    - target: deb
+      arch:
+        - x64
+  icon: icon.png
+  category: Utility
+  maintainer: Marcos
+  synopsis: Monitor de jogos gratuitos
+  description: Monitor de ofertas 100% gratuitas em feeds RSS e na GamerPower.
+  artifactName: FreeGamesHub-${version}-${arch}.${ext}
+  # O schema LinuxDesktopFile só aceita as chaves `entry` e `desktopActions`.
+  # Os campos do [Desktop Entry] vão dentro de `entry:` (sobrepõem os defaults).
+  desktop:
+    entry:
+      Name: Free Games Hub
+      Comment: Monitor de jogos gratuitos
+      Categories: Utility;Network;
+      Keywords: jogos;games;gratis;free;steam;epic;
