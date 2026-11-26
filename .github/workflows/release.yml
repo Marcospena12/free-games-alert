@@ -75,7 +75,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: windows
-          path: desktop/dist/*
+          path: desktop/dist/*.exe
           if-no-files-found: error
 
   build-linux:
@@ -118,7 +118,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: linux
-          path: desktop/dist/*
+          path: |
+            desktop/dist/*.AppImage
+            desktop/dist/*.deb
           if-no-files-found: error
 
   release:
