@@ -2,6 +2,12 @@
 
 Todas as mudanças relevantes do Free Games Hub estão documentadas neste arquivo.
 
+## [0.3.1] — 2026-11-26
+
+### Alterado
+- **Nova logo** do aplicativo (controle roxo) em janela, bandeja, instalador e atalhos.
+- **Geração de ícones centralizada**: a logo é recortada nas bordas transparentes e centralizada em um quadrado, mantendo a proporção e melhorando a legibilidade em tamanhos pequenos; PNGs salvos com compressão máxima.
+
 ## [0.3.0] — 2026-11-26
 
 ### Adicionado

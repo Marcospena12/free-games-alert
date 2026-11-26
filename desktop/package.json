@@ -1,6 +1,6 @@
 {
   "name": "free-games-hub-desktop",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Free Games Hub — desktop app (Electron + React)",
   "main": "out/main/index.js",
   "author": "Marcos",
